@@ -1,0 +1,372 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <iomanip>
+#include <stdlib.h>
+#include <Windows.h>
+
+using namespace std;
+
+class MemoryGame//Class for the game
+{
+public:
+	MemoryGame()//Initializes 8 char variables for the game
+	{
+		counter = 0;//Counter to keep track of number of pairs..Used to end game
+		one='@',two='#',three='$',four='%',five='^',six='&',seven='*',eight='+';//Each of the eight characters used in the game
+		tempVector.reserve(16);//Reserves 16 index for 16 elements used in the game..
+
+	}
+	void displayWelcome()//Welcome message
+	{
+		cout << "Welcome to Memory Match Game" << endl;
+		cout << "The playing board will be a 4x4 with up to 8 possible pairs.." << endl;
+		cout << " You will have 7 seconds each turn to look at board " << endl;
+
+		for (int timeLeft = 4; timeLeft > 0; timeLeft--)
+		{
+			Sleep(1000);
+		}
+
+	}
+	void displayEndGame()//Game over message
+	{
+		cout << "Game Over!" << endl;
+	}
+	void setUpGame()//Function Purpose: To initialize game
+	{
+		counter = 0;//Sets counter to zero to start game. Counter is used to keep track of the number of pairs the user has scored
+		fillUserDisplay();//Fills the cosmeticBoard 4x4 Vector with sixteen '?'
+		fillActualBoard();//FIlls the actual board that stores the 16 characters used in the game(@,#,$,%..ect)
+
+	}
+	void fillUserDisplay()//Function Purpose: Sets up user display board which contains 16 questions marks..(?,?,?,?) As a 4x4
+	{
+		tempVector.clear();//Clears Vector in case anything is already inside
+
+		for (int x = 0; x < 4; x++)//Stores four '?' characters into a temporary vector that we will use to initialize the 4x4 cosmeticBoard vector
+		{
+			tempVector.push_back('?');
+		}
+
+		for (int y = 0; y < 4; y++)//Stores four sets of the temp vector containing four '?' characters
+		{
+			cosmeticBoard.push_back(tempVector);
+		}
+		tempVector.clear();//Clears the tempVector 
+	}
+	void fillActualBoard()//Function Purpose: To fill up the eight pairs of eight elements into a 4x4 vector
+	{
+		tempVector.clear();
+		tempVector.push_back(one);//@
+		tempVector.push_back(one);
+		tempVector.push_back(two);//#
+		tempVector.push_back(two);
+
+		tempVector.push_back(three);//$
+		tempVector.push_back(three);
+		tempVector.push_back(four);//%
+		tempVector.push_back(four);
+
+		tempVector.push_back(five);//^
+		tempVector.push_back(five);
+		tempVector.push_back(six);//&
+		tempVector.push_back(six);
+
+		tempVector.push_back(seven);//*
+		tempVector.push_back(seven);
+		tempVector.push_back(eight);//+
+		tempVector.push_back(eight);
+		shuffle1D(tempVector);
+
+		for (int x = 0; x < 4; x++)//Pushes back 4 sets of 4 characters
+		{
+			board.push_back(tempVector);//Pushes back first four characters
+			for (int y = 0; y < 4; y++)//A loop that will delete the first 4 elements inside of tempVector to have the next four elements ready
+			{
+				tempVector.erase(tempVector.begin());//Points to beginning of Vector
+			}
+		}
+	}
+	void shuffle1D(vector<char>& board)//Randomizes 1d vector
+	{
+		srand(unsigned(time(NULL)));//Uses time as a seed
+		random_shuffle(board.begin(),board.end());//Shuffle is based off of the clocks current time
+	}
+	void displayActualBoard()//displays 2d vector with all 16 characters used in game
+	{
+		display2D(board);
+	}
+	void displayCosmeticBoard()//Displays 2d board used in the users display containing sixteen '?' characters
+	{
+		display2D(cosmeticBoard);
+	}
+	void display1D(const vector<char>& pointer)//Displays a vector of size 16's elements
+	{
+		for (int x = 0; x < 16; x++)
+		{
+			cout << pointer[x] << " ";
+		}
+		cout << endl;
+	}
+	void display2D(const vector<vector<char>>& pointer)//Function Purpose: To display a 4x4 2D vector
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			cout << endl;
+			for (int x = 0; x < 4; x++)
+			{
+				cout << pointer[i][x];
+
+			}
+
+		}
+	}
+	void clear1DVector(vector <char>& pointer)
+	{
+		pointer.clear();
+	}
+	void resetGame()
+	{
+		counter = 0;
+		board.clear();
+		cosmeticBoard.clear();
+		tempVector.clear();
+	}
+	void drawBoxActualBoard()//Draws the board containing 16 characters
+	{
+		cout << setw(4);
+		for (int i = 1; i<5; i++)
+		{
+			cout << i << setw(3);
+		}
+		cout << endl;
+		cout << "-------------" << endl;
+		for (int x = 1; x < 5; x++)
+		{
+			cout << x << ")";
+			for (int y = 0; y < 4; y++)
+			{
+				cout << setw(1) << "|" <<board[x - 1][y] << "|";
+			}
+			cout << endl;
+		}
+	}
+	void drawBox()//Draws the board containing the sixteen '?'
+	{
+		//int count = 1;
+
+		cout << setw(4);
+		for (int i = 1; i<5; i++)
+		{
+			cout << i << setw(3);
+		}
+		cout << endl;
+		cout << "-------------" << endl;
+		for (int x = 1; x < 5; x++)
+		{
+			cout << x << ")";
+			for (int y = 0; y < 4; y++)
+			{
+				cout << setw(1) << "|" << cosmeticBoard[x - 1][y] << "|";
+			}
+			cout << endl;
+		}
+	}
+	void swapCards(int x1, int y1, int x2, int y2)//Function Purpose: To swap cards from (board to cosmetic board) and vice versa after getting a correct pair
+	{
+		char temp;//Temporarily stores the first value so that it is not overwritten
+		temp = board[x1-1][y1-1];//temp equal  to first value
+		board[x1-1][y1-1] = cosmeticBoard[x1-1][y1-1];//First value equal to second value
+		cosmeticBoard[x1-1][y1-1] = temp;//Second value equal to first value
+
+		temp = board[x2-1][y2-1];//Repeated
+		board[x2-1][y2-1] = cosmeticBoard[x2-1][y2-1];
+		cosmeticBoard[x2-1][y2-1] = temp;
+	}
+	const void getCard(int x1, int y1)
+	{
+		cout<<board[x1-1][y1-1]<<endl;
+	}
+
+	bool findCard(int x1, int y1, int x2,int y2)//Compare 2 coordinates of the game to see if they match(board[1][1]==board[2][3]??)
+	{
+		//cout<<"Card 1: "<<board[x1-1][y1-1]<<endl;
+		//cout<<"Card2: "<<board[x2-1][y2-1]<<endl;
+		if (board[x1-1][y1-1]=='?' || board[x2-1][y2-1]=='?')//Card that has been used
+		{
+			return false;
+		}
+		else if (board[x1-1][y1-1]==board[x2-1][y2-1])//Correct Pair
+		{
+		return true;
+		}
+		else
+		{
+			return false;
+		}
+		return false;
+	}
+	void counterIncrease()//Increases counter
+	{
+		counter++;
+	}
+	int getCounter()
+	{
+		return counter;
+	}
+	bool EndGame()//Counter for while loop..If EndGame returns true then..Game over
+	{
+		if (counter==8)
+		{
+		return true;
+		}
+		else
+		return false;
+	}
+
+private:
+	char one,two,three,four,five,six,seven,eight;//Char variables to store the eight characters used in the game..(@,#,$,%,^,&,*,+)
+	int counter;//Counter to end game..Stops at 8 because there are 8 pairs of 16 characters..( @-@, #-#,)
+
+	vector <vector <char> > board;//2D vector(4x4) to store all 16 characters used 
+	vector <char> tempVector;//1D vector to store temporary values..Size of tempVector is 16
+	vector <vector <char> > cosmeticBoard;//2D vector to store all the question mark characters('?') that will be displayed to the user
+};
+
+int main()
+{
+	MemoryGame user;
+
+	int x1, x2, y1, y2;// Variables used to store the coordinates of two choices from the user..(x1,y1) (x2,y2)
+	
+	bool gameOver=false;//Counter to stop game after winning (!gameOver)
+	char choice='y';//Variable storing user decision to play again (choice!='N')
+
+	user.displayWelcome();
+	user.setUpGame();
+
+	do 
+	{
+
+		while (!user.EndGame())//Loop until all 8 pairs are found
+		{
+			for(int timeLeft=7;timeLeft>0;timeLeft--)
+			{
+				cout << "Number of seconds left: " << timeLeft << endl;//Displays Seconds left for the user
+				user.drawBoxActualBoard();//Displays the sixteen characters
+				Sleep(1000);//Sleep for a second
+				system("CLS");//Clear screen to reset the timeLeft on the screen
+
+			}
+
+
+			cout << "Number of Pairs: " << user.getCounter() << endl;//Displays current pairs 
+			cout << endl;
+			user.drawBox();//Draws the cosmetic board
+			try//Duplicate Error..And out of bounds error
+			{
+				cout << "Please pick first card! (Ex. 1 4)" << endl;
+				cin >> x1 >> y1;
+
+				if (x1 >= 1 && x1 <= 4 && y1 >= 1 && y1 <= 4)//Displays first character only if not out of range
+				{
+					cout << "Card 1:";
+					user.getCard(x1, y1);
+					cout << endl;
+				}
+				cout << "Please pick the second card!" << endl;
+				cin >> x2 >> y2;
+				if (x2 >= 1 && x2 <= 4 && y2 >= 1 && y2 <= 4)//Displays second character only if not out of range
+				{
+					cout << "Card 2:";
+					user.getCard(x2, y2);
+					cout << endl;
+				}
+
+				if (x1 == x2 && y1 == y2)//If the coordinates for the first and second cards are the same..Then duplicate Error
+				{
+					throw true;//Throws true for the exception block
+				}
+				else if (x1 < 1 || x1>4 || x2 < 1 || x2>4 || y1 < 1 || y1>4 || y2 < 1 || y2>4)
+				{
+					throw true;
+				}
+			}
+			catch(bool duplicateError)
+			{
+				while (duplicateError)
+				{
+					cout << "Error: Do not input the same coordinates.. and any numbers <1 or >4 " << endl;
+					cout << "Please enter two different coordinates that are between 1-4!!"<<endl;
+					cout<<"Enter first card "<<endl;
+					cin >> x1 >> y1;
+					if (x1 >= 1 && x1 <= 4 && y1>=1 && y1<=4)
+					{
+						cout << "Card 1:";
+						user.getCard(x1, y1);
+						cout << endl;
+					}
+
+					cout<<"Enter second card" <<endl;
+					cin >> x2 >> y2;
+					if (x2 >= 1 && x2 <= 4 && y2 >= 1 && y2 <= 4)
+					{
+						cout << "Card 2:";
+						user.getCard(x2, y2);
+						cout << endl;
+					}
+
+					if (x1==x2 && x1>=1 && x1<=5 && x2>=1 && x2<=5)//If x1 is equal x2 and not out of bounds
+					{
+						if(y1!=y2 && y1 >= 1 && y1 <= 5 && y2 >= 1 && y2 <= 5)//And y1 is not equal to y2 and not out of bounds
+						{
+							duplicateError=false;//Duplicate error becomes false
+						}
+					}
+					else if(x1!=x2 && x1 >= 1 && x1 <= 5 && x2 >= 1 && x2 <= 5)//If x1 is not equal to x2 and not out of bounds
+					{
+						if(y1!=y2 && y1 >= 1 && y1 <= 5 && y2 >= 1 && y2 <= 5)//And y1 is not equal to y2 and not out of bounds
+						{
+							duplicateError=false;//Error is fixed thus becoming false
+						}
+						else if(y1==y2 && y1 >= 1 && y1 <= 5 && y2 >= 1 && y2 <= 5)//or y1 is equal to y2 and not out of bounds
+						{
+							duplicateError=false;//Error is fixed thus becoming false
+						}
+					}
+				}
+			}
+
+			if (user.findCard(x1, y1, x2, y2))
+			{
+				cout<<"You got it!!"<<endl;
+				user.counterIncrease();
+				user.swapCards(x1,y1,x2,y2);
+			}
+			else
+			{
+				cout<<"Oops! Try again!"<<endl;
+			}
+
+			system("pause");
+			system("CLS");
+			
+		}
+		cout<<"Congradulations!!! You finished the Game!!"<<endl;
+		cout << "Would you like to play again (Y,N)?" << endl;
+		cin >> choice;
+
+		if (toupper(choice)=='Y')
+		{
+			user.resetGame();
+			user.setUpGame();
+		}
+	}while (toupper(choice) == 'Y');
+
+
+
+
+	system("pause");
+	return 0;
+}
